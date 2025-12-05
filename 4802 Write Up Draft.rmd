@@ -1,0 +1,92 @@
+---
+title: "4802 Write Up Draft"
+output:
+  word_document: default
+  html_document: default
+date: "2025-11-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+load("/Users/rachaellehner/Desktop/PSY 4802 Folder/PSY 4802 Projetct Data (MIDUS ICPSR 37237) /DS0001/37237-0001-Data.rda")
+```
+
+## R Markdown
+
+## Question 1: Compare the underlying deaths from lung cancer and the underlying deaths not from lung cancer. Then see if lung cancer occurs more than expected/chance 
+```{r}
+library(tidyverse)
+LongDat<- pivot_longer(da37237.0001, cols = c("MULTICOD_1_ICD10", "MULTICOD_2_ICD10", "MULTICOD_3_ICD10", "MULTICOD_3_ICD10", "MULTICOD_4_ICD10", "MULTICOD_5_ICD10", "MULTICOD_6_ICD10", "MULTICOD_7_ICD10", "MULTICOD_8_ICD10", "MULTICOD_9_ICD10", "MULTICOD_10_ICD10", "MULTICOD_11_ICD10", "MULTICOD_12_ICD10"), names_to = "MULTICOD_ICD10", values_to = "Scores", values_drop_na = TRUE)
+chisq.test(c(157,2164), p= c(.05,.95))
+```
+
+```{r}
+LongDat$LungCancer<- NA
+LongDat$LungCancer<- ifelse(LongDat$Scores=="C349           ", 1, 0)
+```
+
+```{r}
+DataFrame1<- data.frame(
+  group = c("Lung Cancer", "Other"), 
+  value = c(172, 2164)
+) 
+```
+
+```{r}
+ggplot(DataFrame1,aes(group, value))+geom_bar(stat = "identity", color = "black", fill = "grey") + xlab("Cause of Death") + ylab("Frequency") + ggtitle("Frequency of Lung Cancer as Cause of Death") + theme_classic()
+
+```
+
+
+
+##Question 2: What are the top five underlying causes of death?
+```{r} 
+library(modeest)
+sort(table(LongDat$UNDERCOD_ICD10))
+#The five top causes of death: Lung Cancer, Pancreas Cancer, Colon Cancer, Liver Cancer and Esophagus Cancer
+```
+```{r}
+dataFrame2<- data.frame(
+  group = c("Lung Cancer", "Pancreas Cancer", "Colon Cancer", "Liver Cancer", "Esophagus Cancer"), 
+  value = c(157, 51, 35, 27, 16)
+)
+```
+```{r}
+ggplot(dataFrame2, aes(group, value))+ geom_bar(stat = "identity", color = "black", fill = "grey") + xlab("Cause of Death") + ylab("Frequency") + ggtitle("The Five Most Frequent Causes of Death") + theme_classic()
+ 
+```
+
+
+##Question 3: lung cancer disease; is it associated with other causes of death? 
+
+--> use logistic regression 
+outcome: heart disease 0/1 
+predictors: other causes of death --> how do I note this in my code?, can I just choose other things?
+#Would using scatter plots be an acceptable way to visualize this infomration? What is the right way to graph this information
+```{r}
+lcdat<- subset(LongDat, LungCancer== 1)
+#Lung cancer is comorbid with Unspecified Residual Disease (URD) (161 counts), Chronic Lower Respiratory Disease (CLRD) (25 counts) and Diabetes (8)
+```
+
+#For Unspecified Risidual Disease 
+```{r}
+chisq.test(c(161, 11), p =c(.21, .79))
+```
+#For Chronic Lower Respiratory Disease 
+```{r}
+chisq.test(c(25, 147), p =c(.064, .936))
+```
+
+#For Diabetes 
+```{r}
+chisq.test(c(8, 164), p = c(.116, .884))
+```
+```{r}
+dataFrame3<- data.frame(
+  group = c("Unspecifed Residual Disease", "Chronic Lower Resipiratory Disease", "Diabetes"), 
+  value = c(161, 25, 8)
+)
+
+ggplot(dataFrame3, aes(group, value))+ geom_bar(stat = "identity", color = "black", fill = "grey") + xlab("Comorbidty") + ylab("Frequency") + ggtitle("Causes of Death Comorbid with Lung Cancer") + theme_classic()
+```
+
